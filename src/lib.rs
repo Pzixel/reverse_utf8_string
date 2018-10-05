@@ -1,4 +1,4 @@
-fn reverse_string(s: &str) -> String {
+pub fn reverse_string(s: &str) -> String {
     if s == "" {
         return "".into();
     }
