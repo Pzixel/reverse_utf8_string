@@ -4,45 +4,39 @@ pub fn reverse_string(s: &str) -> String {
     }
 
     let bytes = s.as_bytes();
-    let mut result = vec![0; bytes.len()];
+    let mut result = allocate_byte_array(bytes.len());
     let mut i_src = 0;
-    let mut j_src = bytes.len() - 1;
-    let mut i_dst = i_src;
-    let mut j_dst = j_src;
 
-    while i_src <= j_src {
+    while i_src < bytes.len() {
         let i_end = {
             let mut value = i_src;
             loop {
-                if is_first_byte(bytes[value + 1]) {
+                if value == bytes.len() - 1 || is_first_byte(bytes[value + 1]) {
                     break value
                 }
                 value += 1;
             }
         };
 
-        let j_start = {
-            let mut value = j_src;
-            loop {
-                if is_first_byte(bytes[value]) {
-                    break value
-                }
-                value -= 1;
-            }
-        };
 
-        let first_char_length = i_end - i_src + 1;
-        let last_char_length = j_src - j_start + 1;
-
-        result[i_dst..][..last_char_length].copy_from_slice(&bytes[j_start..][..last_char_length]);
-        result[j_dst - first_char_length + 1..][..first_char_length].copy_from_slice(&bytes[i_src..][..first_char_length]);
+        let char_length = i_end - i_src + 1;
+        let src = &bytes[i_src..][..char_length];
+        let dst = &mut result[bytes.len() - i_src - char_length..][..char_length];
+        dst.copy_from_slice(src);
 
         i_src = i_end + 1;
-        j_src = j_start - 1;
-        i_dst += last_char_length;
-        j_dst -= first_char_length;
     }
-    String::from_utf8(result).unwrap()
+    unsafe {
+        String::from_utf8_unchecked(result)
+    }
+}
+
+fn allocate_byte_array(len: usize) -> Vec<u8> {
+    let mut v: Vec<u8> = Vec::with_capacity(len);
+    unsafe {
+        v.set_len(len);
+    }
+    v
 }
 
 fn is_first_byte(value: u8) -> bool {
